@@ -1,34 +1,39 @@
 pipeline {
     agent any
-    
+
     tools {
+        // Install the Maven version configured as "M3" and add it to the path.
         maven "MVN3"
     }
-    
+
     stages {
-        stage ('pull scm') {
+        stage('pull scm') {
             steps {
-                git credentialsId: 'github', url: 'git@github.com:sathishbob/jenkins_test.git'
+                // Get some code from a GitHub repository
+                git credentialsId: 'github', url: 'git@github.com:keerthanaPal/jenkins_test.git'
             }
         }
         
-        stage('build') {
+        stage('Build') {
             steps {
-                sh "mvn -f api-gateway/ clean package"
+                sh "mvn -Dmaven.test.failure.ignore=true -f api-gateway/ clean package"
             }
+                            
         }
         
-        stage('publish') {
+        stage('archive') {
             steps {
                 archiveArtifacts artifacts: 'api-gateway/target/*.jar', followSymlinks: false
-                junit stdioRetention: '', testResults: 'api-gateway/target/surefire-reports/*.xml'
             }
         }
         
-        stage ('print') {
-            agent{
-                label 'linux'
+        stage('publish test result') {
+            steps {
+                junit 'api-gateway/target/surefire-reports/*.xml'
             }
+        }
+        
+        stage('test') {
             steps {
                 sh "echo testing"
             }
